@@ -12,13 +12,12 @@ import SwiftUI
 ///
 /// To use the animation, create a `@StateObject`, inject it
 /// into a ``DeckView``, then use ``shuffle(_:times:)`` when
-/// you want to shuffle any item collection. 
+/// you want to shuffle any item collection.
 ///
 /// This animation will shuffle the original item list. This
 /// means that the deck view will automatically update as it
 /// is shuffled.
 public final class DeckShuffleAnimation: ObservableObject {
-    
     /// Create a deck shuffle animation.
     ///
     /// - Parameters:
@@ -37,28 +36,27 @@ public final class DeckShuffleAnimation: ObservableObject {
         self.maxOffsetX = maxOffsetX
         self.maxOffsetY = maxOffsetY
     }
-    
+
     /// The animation to use.
     public let animation: Animation
-    
+
     /// The max rotation to apply to the cards.
     public let maxDegrees: Double
-    
+
     /// The max x offset to apply to the cards.
     public let maxOffsetX: Double
-    
+
     /// The max y offset to apply to the cards.
     public let maxOffsetY: Double
-    
+
     /// Whether or not the animation is currently shuffling.
     public var isShuffling = false
-    
+
     @Published
     private var shuffleData: [ShuffleData] = []
 }
 
 private struct ShuffleData: Sendable {
-    
     public let angle: Angle
     public let xOffset: Double
     public let yOffset: Double
@@ -66,7 +64,6 @@ private struct ShuffleData: Sendable {
 
 @MainActor
 public extension DeckShuffleAnimation {
-    
     /// Shuffle the provided deck with a shuffle animation.
     ///
     /// - Parameters:
@@ -80,7 +77,7 @@ public extension DeckShuffleAnimation {
             await shuffleAsync(items, times: times)
         }
     }
-    
+
     /// Shuffle the provided deck with a shuffle animation.
     ///
     /// - Parameters:
@@ -93,9 +90,9 @@ public extension DeckShuffleAnimation {
         let times = times ?? 3
         if isShuffling { return }
         isShuffling = true
-        for _ in 0...times {
+        for _ in 0 ... times {
             setRandomShuffleData(for: items.count)
-            try? await Task.sleep(nanoseconds: 200_000_000)
+            try? await Task.sleep(nanoseconds: 200000000)
         }
         items.wrappedValue.shuffle()
         setShuffleData([])
@@ -104,25 +101,24 @@ public extension DeckShuffleAnimation {
 }
 
 private extension DeckShuffleAnimation {
-    
     func setRandomShuffleData(for itemCount: Int) {
         setShuffleData(
-            (0..<itemCount).map { _ in
+            (0 ..< itemCount).map { _ in
                 .init(
-                    angle: Angle.degrees(Double.random(in: -maxDegrees...maxDegrees)),
-                    xOffset: Double.random(in: -maxOffsetX...maxOffsetX),
-                    yOffset: Double.random(in: -maxOffsetY...maxOffsetY)
+                    angle: Angle.degrees(Double.random(in: -maxDegrees ... maxDegrees)),
+                    xOffset: Double.random(in: -maxOffsetX ... maxOffsetX),
+                    yOffset: Double.random(in: -maxOffsetY ... maxOffsetY)
                 )
             }
         )
     }
-    
+
     func setShuffleData(_ data: [ShuffleData]) {
         withAnimation(animation) {
             shuffleData = data
         }
     }
-    
+
     func shuffleData<Item: DeckItem>(
         for item: Item,
         in items: [Item]
@@ -137,7 +133,6 @@ private extension DeckShuffleAnimation {
 
 @MainActor
 extension View {
-
     @available(*, deprecated, renamed: "deckShuffleAnimation(_:for:in:)")
     func withShuffleAnimation<Item: DeckItem>(
         _ animation: DeckShuffleAnimation,
@@ -154,8 +149,7 @@ extension View {
         in items: [Item]
     ) -> some View {
         let data = animation.shuffleData(for: item, in: items)
-        return self
-            .rotationEffect(data?.angle ?? .zero)
+        return rotationEffect(data?.angle ?? .zero)
             .offset(x: data?.xOffset ?? 0, y: data?.yOffset ?? 0)
     }
 }
